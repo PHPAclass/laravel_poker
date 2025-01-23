@@ -14,36 +14,50 @@
             $this->handEvaluator = $handEvaluator;
         }
 
-        public function calculateScore($gameId, $playerId, $cards)
+        public function calculateScore()
         {
-            $hand = $this->handEvaluator->evaluateHand($cards);
+            $game = session.get('game');
 
-            $scoreValue = $this->getScoreForHand($hand);
+            $player1_hand = $this->handEvaluator->evaluateHand($game['player'][0]);
+            $player2_hand = $this->handEvaluator->evaluateHand($game['player'][1]);
+            $player3_hand = $this->handEvaluator->evaluateHand($game['player'][2]);
+            $player4_hand = $this->handEvaluator->evaluateHand($game['player'][3]);
 
-            $player = Player::where('game_id', $gameId)->where('player_id', $playerId)->first();
+            $winners = $this->checkWinner($player1_hand, $player2_hand, $player3_hand, $player4_hand);
 
-            $player->score += $scoreValue; 
-            $player->save();
+            // $winnersを元に点数加算ロジック
+
+            
+
 
             return 0;
         }
 
-        private function getScoreForHand($hand)
-        {
-            $handScores = [
-                'Royal Flush' => 100,
-                'Straight Flush' => 75,
-                'Four of a Kind' => 50,
-                'Full House' => 40,
-                'Flush' => 30,
-                'Straight' => 20,
-                'Three of a Kind' => 10,
-                'Two Pair' => 5,
-                'One Pair' => 2,
-                'High Card' => 1,
-            ];
+            private function checkWinner($player1_hand, $player2_hand, $player3_hand, $player4_hand)
+            {
+                $handScores = [
+                    'Royal Flush' => 10,
+                    'Straight Flush' => 9,
+                    'Four of a Kind' => 8,
+                    'Full House' => 7,
+                    'Flush' => 6,
+                    'Straight' => 5,
+                    'Three of a Kind' => 4,
+                    'Two Pair' => 3,
+                    'One Pair' => 2,
+                    'High Card' => 1,
+                ];
 
-            return $handScores[$hand] ?? 0;
-        }
+                $playerScores = [
+                    'player1'=> $handScores[$player1_hand] ?? 0,
+                    'player2'=> $handScores[$player2_hand] ?? 0,
+                    'player3'=> $handScores[$player3_hand] ?? 0,
+                    'player4'=> $handScores[$player4_hand] ?? 0,
+                ];
+
+                $winners = array_keys($playerScores, $maxScore);
+
+                return $winners;
+            }
 
     }
